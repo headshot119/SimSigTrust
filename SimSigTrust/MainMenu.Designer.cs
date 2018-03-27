@@ -31,6 +31,7 @@
             this.screenTrust = new System.Windows.Forms.ListBox();
             this.txtUserInput = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.txtClock = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // screenTrust
@@ -71,15 +72,31 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 19;
-            this.button1.Text = "button1";
+            this.button1.Text = "Connect";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // txtClock
+            // 
+            this.txtClock.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtClock.BackColor = System.Drawing.SystemColors.InfoText;
+            this.txtClock.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+            this.txtClock.Font = new System.Drawing.Font("Consolas", 11F);
+            this.txtClock.ForeColor = System.Drawing.Color.Cyan;
+            this.txtClock.Location = new System.Drawing.Point(747, 16);
+            this.txtClock.Margin = new System.Windows.Forms.Padding(4);
+            this.txtClock.MinimumSize = new System.Drawing.Size(4, 25);
+            this.txtClock.Name = "txtClock";
+            this.txtClock.Size = new System.Drawing.Size(86, 25);
+            this.txtClock.TabIndex = 20;
             // 
             // MainMenu
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(846, 542);
+            this.Controls.Add(this.txtClock);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.txtUserInput);
             this.Controls.Add(this.screenTrust);
@@ -95,6 +112,7 @@
         private System.Windows.Forms.ListBox screenTrust;
         public System.Windows.Forms.TextBox txtUserInput;
         private System.Windows.Forms.Button button1;
+        public System.Windows.Forms.TextBox txtClock;
     }
 }
 

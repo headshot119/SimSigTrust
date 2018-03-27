@@ -28,11 +28,11 @@ namespace SimSigTrust
                 try
                 {
 
-                    var buffer = new byte[1024];
+                    var buffer = new byte[2048];
 
                     int bytesRead;
 
-                    var charBuffer = new char[1024];
+                    var charBuffer = new char[2048];
 
                     string temp = "";
 

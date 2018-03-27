@@ -16,6 +16,11 @@ namespace SimSigTrust
 
         public static TcpClient Connection = new TcpClient();
         public string trustString;
+        public string lastUserInputTiploc;
+        public string lastUserInputTime;
+        public string currentSimTime;
+        public bool lastUserInput;
+        public bool autoUpdate = false;
 
         public static event EventHandler<MsgEventArgs> DebugTcpDataReceived;
         public static event EventHandler<MsgEventArgs> KeyboardTcpDataReceived;
@@ -47,8 +52,36 @@ namespace SimSigTrust
                     {
                         element = element.Remove(0, 3);
                     }
+                    //zA packet is the clock update
+                    if (element.Contains("zA"))
+                    {
+
+                        string trimmedPacket = element.Substring(5, 5);
+
+                        int totalSeconds = Convert.ToInt32(trimmedPacket, 16); //Hex to int
+                        int seconds = totalSeconds - ((totalSeconds / 60) * 60); //Seconds
+                        int minutes = (totalSeconds / 60) % 60; //minutes
+                        int hours = (totalSeconds / 60 / 60); //hours
+
+                        currentSimTime = (hours.ToString("D2") + ":" + minutes.ToString("D2") + ":" + seconds.ToString("D2"));
+
+                        if (InvokeRequired)
+                            Invoke(new MethodInvoker(delegate
+                            {
+                                txtClock.Text = currentSimTime;
+                            }));
+
+                        if(autoUpdate == true)
+                        {
+                            trjaQuery(lastUserInputTiploc, currentSimTime);
+                        }
+                    }
+
+
                     if (element.Contains("<platformDataResponse"))
                     {
+
+                        // debug to print XML Console.Write(element.ToString());
 
                         string headcode = null;
                         string platform = "   ";
@@ -68,16 +101,17 @@ namespace SimSigTrust
 
                         XmlNodeList listOfHeadcodes = simplifier.SelectNodes("/SimSig/platformDataResponse/headcode");
 
-                        foreach (XmlNode trainInSimplfier in listOfHeadcodes)
-                        {
-                            if (InvokeRequired)
+                                                    if (InvokeRequired)
                                 Invoke(new MethodInvoker(delegate
                                 {
                                     screenTrust.Items.Clear();
                                     screenTrust.Items.Add(trustString);
                                     screenTrust.Items.Add(" ");
-                                    screenTrust.Items.Add("TRAIN ARR    DEP  PLT LIN PTH  DELAY");
+                                    screenTrust.Items.Add("TRAIN ARR    DEP   PLT  LIN  PTH  DELAY");
                                 }));
+
+                        foreach (XmlNode trainInSimplfier in listOfHeadcodes)
+                        {
 
                             headcode = null;
                             platform = "   ";
@@ -94,17 +128,17 @@ namespace SimSigTrust
                             do
                             {
                                 platform = platform + " ";
-                            } while (platform.Length != 3);
+                            } while (platform.Length != 4);
                             line = trainInSimplfier.SelectSingleNode("line").InnerText;
                             do
                             {
                                 line = line + " ";
-                            } while (line.Length != 3);
+                            } while (line.Length != 4);
                             path = trainInSimplfier.SelectSingleNode("path").InnerText;
                             do
                             {
                                 path = path + " ";
-                            } while (path.Length != 3);
+                            } while (path.Length != 4);
                             description = trainInSimplfier.SelectSingleNode("description").InnerText;
                             if (trainInSimplfier.SelectSingleNode("delay") != null)
                             {
@@ -195,8 +229,36 @@ namespace SimSigTrust
                 }
         }
 
-            //input
+        //input
 
+        private void trjaQuery(string tiploc, string queryTime)
+        {
+            
+                if (queryTime == "" || queryTime == currentSimTime) //go for sim time
+                {
+                    if (currentSimTime != null) //if we have a time to use
+                    {
+                        trustString = ("TRUST LineUP for " + tiploc + " at " + currentSimTime.ToString().Substring(0, 5));
+                        Connection.SendData("<?xml version=\"1.0\" encoding=\"utf-8\"?><SimSig><platformDataRequest userTag=\"1\"><id>" + tiploc + "</id><platformCodes>(all)</platformCodes><time>" + currentSimTime.ToString().Substring(0, 5) + "</time></platformDataRequest></SimSig>|");
+                        autoUpdate = true; //we want it to follow sim time
+                    }
+                    else
+                    {
+                        autoUpdate = true; // we don't have a time but fire when we do
+                }
+
+
+                }
+                else //go for user time
+                {
+
+                    trustString = ("TRUST LineUP for " + tiploc + " at " + queryTime);
+                    Connection.SendData("<?xml version=\"1.0\" encoding=\"utf-8\"?><SimSig><platformDataRequest userTag=\"1\"><id>" + tiploc + "</id><platformCodes>(all)</platformCodes><time>" + queryTime + "</time></platformDataRequest></SimSig>|");
+                    txtUserInput.Text = "";
+                    autoUpdate = false;
+                }
+        }
+        
         private void txtUserInput_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -204,11 +266,17 @@ namespace SimSigTrust
                 if (txtUserInput.Text.StartsWith("TRJA"))
                 {
                     string[] z = txtUserInput.Text.Split(' ');
-                    trustString = ("TRUST LineUP for " + z[1] + " at " + z[2]);
+                    lastUserInputTiploc = z[1];
+                    if (3 <= z.Length)
+                    {
+                        trjaQuery(z[1], z[2]);
+                    }
+                    else
+                    {
+                        trjaQuery(z[1], "");
+                    }
 
 
-                    Connection.SendData("<?xml version=\"1.0\" encoding=\"utf-8\"?><SimSig><platformDataRequest userTag=\"1\"><id>" + z[1] + "</id><platformCodes>(all)</platformCodes><time>" + z[2] + "</time></platformDataRequest></SimSig>|");//WORK HERE
-                    txtUserInput.Text = "";
                 }
                 else
                 {

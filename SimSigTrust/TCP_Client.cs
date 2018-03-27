@@ -77,6 +77,7 @@ namespace SimSigTrust
         private Receiver _receiver;
         private Sender _sender;
     }
+
     public class MsgEventArgs : EventArgs
     {
         public string Msg { get; set; }
